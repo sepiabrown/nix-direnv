@@ -13,11 +13,6 @@ _nix_direnv_preflight () {
     NIX_BIN_PREFIX=$(command -v nix-shell)
     NIX_BIN_PREFIX="${NIX_BIN_PREFIX%/*}/"
   fi
-  echo "##### NIX_BIN_PREFIX 1 #####"
-  echo "##### ${NIX_BIN_PREFIX}"
-  echo $NIX_BIN_PREFIX
-  echo "##### end #####"
-
 
   if ! has direnv_version || ! direnv_version "$REQUIRED_DIRENV_VERSION" 2>/dev/null; then
     log_status "nix-direnv: base direnv version is older than the required v$REQUIRED_DIRENV_VERSION."
@@ -155,19 +150,20 @@ nix_direnv_watch_file() {
 
 use_flake() {
   _nix_direnv_preflight
-  echo "##### NIX_BIN_PREFIX 2 #####"
-  echo "##### ${NIX_BIN_PREFIX}"
-  echo $NIX_BIN_PREFIX
-  echo "##### end #####"
 
   flake_expr="${1:-.}"
   flake_dir="${flake_expr%#*}"
-
+  echo "##### Start #####"
+  
   nix_direnv_watch_file ".envrc" "$HOME/.direnvrc" "$HOME/.config/direnv/direnvrc"
   if [[ -d "$flake_dir" ]]; then
     nix_direnv_watch_file "$flake_dir/flake.nix" "$flake_dir/flake.lock" "$flake_dir/devshell.toml"
+    echo "##### watch_file flake_dir #####"
+    echo $flake_dir
+    echo "##### end #####"
   fi
 
+  echo "##### Fin #####"
   local layout_dir profile
   layout_dir=$(direnv_layout_dir)
   profile="${layout_dir}/flake-profile$(_nix_argsum_suffix "$flake_expr")"
@@ -194,10 +190,6 @@ use_flake() {
     tmp_profile_rc=$("${NIX_BIN_PREFIX}nix" print-dev-env \
       --extra-experimental-features "nix-command flakes" \
       --profile "$tmp_profile" "$@")
-    echo "##### tmp_profile_rc #####"
-    echo "##### ${tmp_profile_rc}"
-    echo $tmp_profile_rc
-    echo "##### end #####"
 
     local drv
     drv=$(_nix_direnv_realpath "$tmp_profile")
